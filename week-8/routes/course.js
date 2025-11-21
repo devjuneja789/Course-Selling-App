@@ -1,3 +1,4 @@
+const express = require("express");
 const CourseRouter = express.Router();
 
 CourseRouter.use((req, res, next) => {
@@ -5,10 +6,14 @@ CourseRouter.use((req, res, next) => {
   next();
 });
 
-CourseRouter.post("/course/purchase", function(req,res){
+CourseRouter.post("/purchase", function(req,res){
 
 })
 
-CourseRouter.get("/course", function(req,res){
+CourseRouter.get("/", function(req,res){
 
 })
+
+module.exports = {
+  CourseRouter: CourseRouter
+}
