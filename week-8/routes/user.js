@@ -1,10 +1,10 @@
-const userRouter = express.Router();
-userRouter.use((req, res, next) => {
+const UserRouter = express.Router();
+UserRouter.use((req, res, next) => {
   console.log('Time: ', Date.now());
   next();
 });
 
-userRouter.post("/user/signup", async function(req,res){
+UserRouter.post("/user/signup", async function(req,res){
     const username =  req.body.username;
     const password =  req.body.password;
     const name = req.body.name;
@@ -20,7 +20,7 @@ userRouter.post("/user/signup", async function(req,res){
     
 })
 
-userRouter.post("/user/signin", async function(req,res){
+UserRouter.post("/user/signin", async function(req,res){
     const username = req.body.username;
     const password = req.body.password;
     
@@ -36,6 +36,10 @@ userRouter.post("/user/signin", async function(req,res){
 
 })
 
+router.get("/user/courses", function(req,res){ 
+
+})
+
 module.exports = {
-     userRouter: userRouter
+     UserRouter: UserRouter
 }
