@@ -19,13 +19,18 @@ const Admin = new Schema({
     name: String
 })
 
+const Purchase = new Schema({
+    
+})
+
 const UsersModel = mongoose.model("users",User);
 const CourseModel = mongoose.model("course",Course);  
 const AdminModel = mongoose.model("admin",Admin);  
-
+const PurchaseModel = mongoose.model("purchase", Purchase)
 
 module.exports = {
     UsersModel,
     CourseModel,
-    AdminModel
+    AdminModel,
+    PurchaseModel
 }
