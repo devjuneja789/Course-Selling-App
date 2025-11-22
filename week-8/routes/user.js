@@ -1,5 +1,6 @@
 const express = require("express");
 const UserRouter = express.Router();
+const {UsersModel} = require("../db");
 
 UserRouter.use((req, res, next) => {
   console.log('Time: ', Date.now());
