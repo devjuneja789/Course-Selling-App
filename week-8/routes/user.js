@@ -28,9 +28,11 @@ UserRouter.post("/signup", async function (req, res) {
         return // return to stop the function
     }
     const { username, password, name } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 5);
+        console.log(hashedPassword);
     await UsersModel.create({
         username: username,
-        password: password,
+        password: hashedPassword,
         name: name
     })
     res.json({
@@ -44,11 +46,15 @@ UserRouter.post("/signin", async function (req, res) {
     const password = req.body.password;
 
     const user = await UserModel.findOne({
-        username: username,
-        password: password
+        username: username
     })
+    if (!user) {
+      return res.status(403).json({ message: "Incorrect credentials" });
+    }
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    
 
-    if (user) {
+    if (passwordMatch) {
         const token = jwt.sign({
             id: user._id.toString()
         }, JWT_SECRET);

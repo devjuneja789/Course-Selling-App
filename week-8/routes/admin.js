@@ -3,6 +3,8 @@ const AdminRouter = express.Router();
 const { AdminModel } = require("../db");
 const jwt = require("jsonwebtoken");
 const JWT_SECRET = "s3cret";
+const bcrypt = require("bcrypt");
+const { z } = require("zod");
 
 AdminRouter.post("/signup", async function (req, res) {
     const requireBody = z.object({   // input validation
@@ -20,9 +22,11 @@ AdminRouter.post("/signup", async function (req, res) {
         return // return to stop the function
     }
     const { username, password, name } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 5);
+        console.log(hashedPassword);
     await AdminModel.create({
         username: username,
-        password: password,
+        password: hashedPassword,
         name: name
     })
     res.json({
@@ -33,15 +37,21 @@ AdminRouter.post("/signup", async function (req, res) {
 AdminRouter.post("/signin", async function (req, res) {
     const { username, password } = req.body;
     const admin = await AdminModel.findOne({
-        username: username,
-        password: password
+        username: username
     })
-    if (admin) {
+    if(!admin){
+        res.json({
+            message: "Incorrect credentials"
+        })
+    }
+    const passwordMatch = await bcrypt.compare(password, admin.password);
+    
+    if (passwordMatch) {
         const token = jwt.sign({
             id: admin._id.toString()
         }, JWT_SECRET);
         res.json({
-            message: "You are signed in"
+            token: token
         })
     } else {
         res.status(403).send({
