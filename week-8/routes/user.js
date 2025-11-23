@@ -2,7 +2,7 @@ const express = require("express");
 const UserRouter = express.Router();
 const { UsersModel } = require("../db");
 const jwt = require("jsonwebtoken");
-const JWT_SECRET = "random";
+const USER_JWT_SECRET = require("../config");
 const bcrypt = require("bcrypt");
 const { z } = require("zod");
 
@@ -57,7 +57,7 @@ UserRouter.post("/signin", async function (req, res) {
     if (passwordMatch) {
         const token = jwt.sign({
             id: user._id.toString()
-        }, JWT_SECRET);
+        }, USER_JWT_SECRET);
         res.json({
             token: token
         })
