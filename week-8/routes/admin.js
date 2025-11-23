@@ -1,8 +1,9 @@
 const express = require("express");
 const AdminRouter = express.Router();
-const { AdminModel } = require("../db");
+const { AdminModel, CourseModel } = require("../db");
 const jwt = require("jsonwebtoken");
-const {ADMIN_JWT_SECRET} = require("../config")
+const { ADMIN_JWT_SECRET } = require("../config")
+const { AdminMiddlware } = require("../middlewares/admin")
 const bcrypt = require("bcrypt");
 const { z } = require("zod");
 
@@ -23,7 +24,7 @@ AdminRouter.post("/signup", async function (req, res) {
     }
     const { username, password, name } = req.body;
     const hashedPassword = await bcrypt.hash(password, 5);
-        console.log(hashedPassword);
+    console.log(hashedPassword);
     await AdminModel.create({
         username: username,
         password: hashedPassword,
@@ -39,13 +40,13 @@ AdminRouter.post("/signin", async function (req, res) {
     const admin = await AdminModel.findOne({
         username: username
     })
-    if(!admin){
+    if (!admin) {
         res.json({
             message: "Incorrect credentials"
         })
     }
     const passwordMatch = await bcrypt.compare(password, admin.password);
-    
+
     if (passwordMatch) {
         const token = jwt.sign({
             id: admin._id.toString()
@@ -62,15 +63,28 @@ AdminRouter.post("/signin", async function (req, res) {
 
 })
 
-AdminRouter.post("/course", async function (req, res) {
+AdminRouter.post("/course", AdminMiddlware, async function (req, res) {
+    const adminId = req.userId;
+    const { title, description, price, imageurl } = req.body;
+    const course = await CourseModel.create({
+        title: title,
+        description: description,
+        price: price,
+        imageurl: imageurl,
+        creatorId: adminId
+    })
+    res.json({
+        message: "course created",
+        courseId: course._id
+    })
 
 })
 
-AdminRouter.delete("/course", async function (req, res) {
+AdminRouter.delete("/course", AdminMiddlware, function (req, res) {
 
 })
 
-AdminRouter.put("/course", async function (req, res) {
+AdminRouter.put("/course", AdminMiddlware, function (req, res) {
 
 })
 
