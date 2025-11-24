@@ -1,5 +1,5 @@
-const USER_JWT_SECRET = "random";
-const ADMIN_JWT_SECRET = "s3cret";
+const USER_JWT_SECRET = process.env.USER_JWT_SECRET;
+const ADMIN_JWT_SECRET = process.env.ADMIN_JWT_SECRET;
 
 module.exports = {
     USER_JWT_SECRET,
