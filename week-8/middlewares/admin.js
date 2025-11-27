@@ -3,7 +3,7 @@ const { ADMIN_JWT_SECRET } = require("../config")
 
 function adminMiddleware(req, res, next) {
     const token = req.headers.token;
-    const decodeData = jwt.verify(token, USER_JWT_SECRET);
+    const decodeData = jwt.verify(token, ADMIN_JWT_SECRET);
 
     if (decodeData) {
         req.userId = decodeData.id;
