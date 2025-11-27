@@ -6,6 +6,7 @@ const { ADMIN_JWT_SECRET } = require("../config")
 const { adminMiddleware } = require("../middlewares/admin")
 const bcrypt = require("bcrypt");
 const { z, json } = require("zod");
+const course = require("./course");
 
 AdminRouter.post("/signup", async function (req, res) {
     const requireBody = z.object({   // input validation
@@ -80,10 +81,29 @@ AdminRouter.post("/course", adminMiddleware, async function (req, res) {
 
 })
 
-AdminRouter.delete("/course", adminMiddleware, function (req, res) {
+AdminRouter.delete("/course", adminMiddleware, async function (req, res) {
+         const courseId = req.body;
+
+         const result = await CourseModel.deleteOne({
+            _id: courseId
+         })
+         res.json({
+            message: "Course Deleted",
+            courseId
+         })
 
 })
 
+AdminRouter.get("/course.bulk", adminMiddleware, async function (req, res) {
+     const adminId = req.userId;
+
+     const courses = await CourseModel.findOne({
+        creatorId: adminId
+     })
+     res.json({
+        courses
+     })
+})
 AdminRouter.put("/course", adminMiddleware, async function (req, res) {
     const { title, description, price, imageurl, courseId } = req.body;
     const course = await CourseModel.updateOne({
