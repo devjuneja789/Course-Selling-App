@@ -10,7 +10,7 @@ const course = require("./course");
 
 AdminRouter.post("/signup", async function (req, res) {
     const requireBody = z.object({   // input validation
-        email: z.email(),
+        username: z.email(),
         password: z.string(),
         name: z.string()
     })

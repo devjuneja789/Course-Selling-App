@@ -11,8 +11,8 @@ app.use(express.json());
 
 
 app.use("/api/v1/user", UserRouter);
-app.use("/api.v1/course", CourseRouter);
-app.use("/api.v1/admin", AdminRouter);
+app.use("/api/v1/course", CourseRouter);
+app.use("/api/v1/admin", AdminRouter);
 
 async function main() {
     await mongoose.connect(process.env.MONGO_URL);
