@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken");
 const { ADMIN_JWT_SECRET } = require("../config")
 const { adminMiddleware } = require("../middlewares/admin")
 const bcrypt = require("bcrypt");
-const { z } = require("zod");
+const { z, json } = require("zod");
 
 AdminRouter.post("/signup", async function (req, res) {
     const requireBody = z.object({   // input validation
@@ -84,8 +84,21 @@ AdminRouter.delete("/course", adminMiddleware, function (req, res) {
 
 })
 
-AdminRouter.put("/course", adminMiddleware, function (req, res) {
-    const { title, description, price, imageurl, course,_id } = req.body;     
+AdminRouter.put("/course", adminMiddleware, async function (req, res) {
+    const { title, description, price, imageurl, courseId } = req.body;
+    const course = await CourseModel.updateOne({
+       _id: courseId,
+       creatorId: adminId
+    }, {
+        title: title,
+        description: description,
+        price: price,
+        imageurl: imageurl         
+    })     
+    res,json({
+        message: "Course Updated",
+        courseId: course._id
+    })
 })
 
 module.exports = {
