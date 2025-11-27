@@ -7,6 +7,11 @@ const { adminMiddleware } = require("../middlewares/admin")
 const bcrypt = require("bcrypt");
 const { z } = require("zod");
 
+AdminRouter.use((req, res, next) => {
+    console.log('Time: ', new Date().toLocaleString(), ' Method: ', req.method);
+    next();
+});
+
 AdminRouter.post("/signup", async function (req, res) {
     const requireBody = z.object({   // input validation
         username: z.string().email(),

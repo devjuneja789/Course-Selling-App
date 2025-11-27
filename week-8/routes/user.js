@@ -14,7 +14,7 @@ UserRouter.use((req, res, next) => {
 
 UserRouter.post("/signup", async function (req, res) {
     const requireBody = z.object({   // input validation
-        email: z.string().email(),
+        username: z.string().email(),
         password: z.string(),
         name: z.string()
     })
@@ -27,11 +27,11 @@ UserRouter.post("/signup", async function (req, res) {
         })
         return // return to stop the function
     }
-    const { email, password, name } = req.body;
+    const { username, password, name } = req.body;
     const hashedPassword = await bcrypt.hash(password, 5);
     console.log(hashedPassword);
     await UsersModel.create({
-        username: email,
+        username: username,
         password: hashedPassword,
         name: name
     })
@@ -42,10 +42,10 @@ UserRouter.post("/signup", async function (req, res) {
 })
 
 UserRouter.post("/signin", async function (req, res) {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
 
     const user = await UsersModel.findOne({
-        username: email
+        username: username
     })
     if (!user) {
         return res.status(403).json({ message: "Incorrect credentials" });
