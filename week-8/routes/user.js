@@ -14,7 +14,7 @@ UserRouter.use((req, res, next) => {
 
 UserRouter.post("/signup", async function (req, res) {
     const requireBody = z.object({   // input validation
-        email: z.email(),
+        email: z.string().email(),
         password: z.string(),
         name: z.string()
     })
@@ -27,11 +27,11 @@ UserRouter.post("/signup", async function (req, res) {
         })
         return // return to stop the function
     }
-    const { username, password, name } = req.body;
+    const { email, password, name } = req.body;
     const hashedPassword = await bcrypt.hash(password, 5);
-        console.log(hashedPassword);
+    console.log(hashedPassword);
     await UsersModel.create({
-        username: username,
+        username: email,
         password: hashedPassword,
         name: name
     })
@@ -42,17 +42,16 @@ UserRouter.post("/signup", async function (req, res) {
 })
 
 UserRouter.post("/signin", async function (req, res) {
-    const username = req.body.username;
-    const password = req.body.password;
+    const { email, password } = req.body;
 
-    const user = await UserModel.findOne({
-        username: username
+    const user = await UsersModel.findOne({
+        username: email
     })
     if (!user) {
-      return res.status(403).json({ message: "Incorrect credentials" });
+        return res.status(403).json({ message: "Incorrect credentials" });
     }
     const passwordMatch = await bcrypt.compare(password, user.password);
-    
+
 
     if (passwordMatch) {
         const token = jwt.sign({
@@ -70,7 +69,8 @@ UserRouter.post("/signin", async function (req, res) {
 })
 
 UserRouter.get("/courses", function (req, res) {
-
+    // TODO: Implement getting courses
+    res.json({ message: "Courses endpoint" });
 })
 
 module.exports = {

@@ -5,8 +5,7 @@ const jwt = require("jsonwebtoken");
 const { ADMIN_JWT_SECRET } = require("../config")
 const { adminMiddleware } = require("../middlewares/admin")
 const bcrypt = require("bcrypt");
-const { z, json } = require("zod");
-const course = require("./course");
+const { z } = require("zod");
 
 AdminRouter.post("/signup", async function (req, res) {
     const requireBody = z.object({   // input validation
@@ -42,7 +41,7 @@ AdminRouter.post("/signin", async function (req, res) {
         username: username
     })
     if (!admin) {
-        res.json({
+        return res.json({
             message: "Incorrect credentials"
         })
     }
@@ -60,8 +59,6 @@ AdminRouter.post("/signin", async function (req, res) {
             message: "Incorrect credentials"
         })
     }
-
-
 })
 
 AdminRouter.post("/course", adminMiddleware, async function (req, res) {
@@ -82,40 +79,43 @@ AdminRouter.post("/course", adminMiddleware, async function (req, res) {
 })
 
 AdminRouter.delete("/course", adminMiddleware, async function (req, res) {
-         const courseId = req.body;
+    const { courseId } = req.body;
 
-         const result = await CourseModel.deleteOne({
-            _id: courseId
-         })
-         res.json({
-            message: "Course Deleted",
-            courseId
-         })
+    const result = await CourseModel.deleteOne({
+        _id: courseId,
+        creatorId: req.userId
+    })
+    res.json({
+        message: "Course Deleted",
+        courseId
+    })
 
 })
 
 AdminRouter.get("/course.bulk", adminMiddleware, async function (req, res) {
-     const adminId = req.userId;
+    const adminId = req.userId;
 
-     const courses = await CourseModel.findOne({
+    const courses = await CourseModel.find({
         creatorId: adminId
-     })
-     res.json({
+    })
+    res.json({
         courses
-     })
+    })
 })
+
 AdminRouter.put("/course", adminMiddleware, async function (req, res) {
+    const adminId = req.userId;
     const { title, description, price, imageurl, courseId } = req.body;
     const course = await CourseModel.updateOne({
-       _id: courseId,
-       creatorId: adminId
+        _id: courseId,
+        creatorId: adminId
     }, {
         title: title,
         description: description,
         price: price,
-        imageurl: imageurl         
-    })     
-    res,json({
+        imageurl: imageurl
+    })
+    res.json({
         message: "Course Updated",
         courseId: course._id
     })
