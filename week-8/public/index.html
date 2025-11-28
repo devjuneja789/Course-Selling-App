@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Selling App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav>
+        <div class="logo">CourseApp</div>
+        <div id="nav-links">
+            <a href="index.html">Home</a>
+            <!-- Links will be injected here based on auth state -->
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header">
+            <h1>Available Courses</h1>
+        </div>
+        <div id="course-list" class="grid">
+            <!-- Courses will be loaded here -->
+            <p>Loading courses...</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        // Page specific logic
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCourses();
+            updateNav();
+        });
+
+        async function loadCourses() {
+            try {
+                const response = await fetch(`${BASE_URL}/course/preview`); // Wait, endpoint is /course/
+                // Checking backend: CourseRouter.get("/", ...) mounted at /api/v1/course
+                // So it is /api/v1/course/
+                
+                const res = await fetch(`${BASE_URL}/course`);
+                const data = await res.json();
+                
+                const courseList = document.getElementById('course-list');
+                courseList.innerHTML = '';
+
+                if (data.courses && data.courses.length > 0) {
+                    data.courses.forEach(course => {
+                        const card = document.createElement('div');
+                        card.className = 'card';
+                        card.innerHTML = `
+                            <img src="${course.imageurl || 'https://via.placeholder.com/300'}" alt="${course.title}">
+                            <h3>${course.title}</h3>
+                            <p>${course.description}</p>
+                            <p><strong>Price: $${course.price}</strong></p>
+                            <button class="btn" onclick="purchaseCourse('${course._id}')">Buy Course</button>
+                        `;
+                        courseList.appendChild(card);
+                    });
+                } else {
+                    courseList.innerHTML = '<p>No courses available.</p>';
+                }
+            } catch (error) {
+                console.error('Error loading courses:', error);
+                document.getElementById('course-list').innerHTML = '<p>Error loading courses. Make sure the backend is running.</p>';
+            }
+        }
+
+        async function purchaseCourse(courseId) {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Please sign in to purchase courses.');
+                window.location.href = 'user-signin.html';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${BASE_URL}/course/purchase`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'token': token
+                    },
+                    body: JSON.stringify({ courseId })
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    alert(data.message);
+                } else {
+                    alert(data.message || 'Purchase failed');
+                }
+            } catch (error) {
+                console.error('Error purchasing course:', error);
+                alert('An error occurred.');
+            }
+        }
+    </script>
+</body>
+</html>

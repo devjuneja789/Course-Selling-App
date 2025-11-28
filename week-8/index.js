@@ -2,12 +2,13 @@ const express = require("express");
 require('dotenv').config();
 console.log(process.env.MONGO_URL);
 const mongoose = require("mongoose");
-const {UserRouter} = require("./routes/user");
-const {CourseRouter} = require("./routes/course");
-const {AdminRouter} = require("./routes/admin");
+const { UserRouter } = require("./routes/user");
+const { CourseRouter } = require("./routes/course");
+const { AdminRouter } = require("./routes/admin");
 
 const app = express();
 app.use(express.json());
+app.use(express.static("public"));
 
 
 app.use("/api/v1/user", UserRouter);

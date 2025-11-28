@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Purchases - CourseApp</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <nav>
+        <div class="logo">CourseApp</div>
+        <div id="nav-links">
+            <a href="index.html">Home</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header">
+            <h1>My Purchased Courses</h1>
+        </div>
+        <div id="course-list" class="grid">
+            <!-- Courses will be loaded here -->
+            <p>Loading purchases...</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'user-signin.html';
+                return;
+            }
+            loadPurchases();
+        });
+
+        async function loadPurchases() {
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch(`${BASE_URL}/user/purchases`, {
+                    headers: { 'token': token }
+                });
+                const data = await response.json();
+
+                const courseList = document.getElementById('course-list');
+                courseList.innerHTML = '';
+
+                // data.courseData contains the course details
+                if (data.courseData && data.courseData.length > 0) {
+                    data.courseData.forEach(course => {
+                        const card = document.createElement('div');
+                        card.className = 'card';
+                        card.innerHTML = `
+                            <img src="${course.imageurl || 'https://via.placeholder.com/300'}" alt="${course.title}">
+                            <h3>${course.title}</h3>
+                            <p>${course.description}</p>
+                            <p><strong>Price: $${course.price}</strong></p>
+                            <button class="btn" disabled>Purchased</button>
+                        `;
+                        courseList.appendChild(card);
+                    });
+                } else {
+                    courseList.innerHTML = '<p>You haven\'t purchased any courses yet.</p>';
+                }
+            } catch (error) {
+                console.error('Error loading purchases:', error);
+                document.getElementById('course-list').innerHTML = '<p>Error loading purchases.</p>';
+            }
+        }
+    </script>
+</body>
+
+</html>

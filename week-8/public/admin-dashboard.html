@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - CourseApp</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 8px;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: black;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <div class="logo">CourseApp Admin</div>
+        <div id="nav-links">
+            <a href="index.html">Home</a>
+            <a href="#" onclick="logout()">Logout</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header">
+            <h1>Your Courses</h1>
+            <button class="btn" onclick="openModal()">Create New Course</button>
+        </div>
+        <div id="course-list" class="grid">
+            <!-- Courses will be loaded here -->
+            <p>Loading courses...</p>
+        </div>
+    </div>
+
+    <!-- Create Course Modal -->
+    <div id="courseModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle">Create Course</h2>
+            <form id="course-form">
+                <input type="hidden" id="courseId">
+                <div class="form-group">
+                    <label for="title">Title</label>
+                    <input type="text" id="title" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="price">Price</label>
+                    <input type="number" id="price" name="price" required>
+                </div>
+                <div class="form-group">
+                    <label for="imageurl">Image URL</label>
+                    <input type="text" id="imageurl" name="imageurl" required>
+                </div>
+                <button type="submit" class="btn">Save Course</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'admin-signin.html';
+                return;
+            }
+            loadCourses();
+        });
+
+        async function loadCourses() {
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch(`${BASE_URL}/admin/course/bulk`, {
+                    headers: { 'token': token }
+                });
+                const data = await response.json();
+
+                const courseList = document.getElementById('course-list');
+                courseList.innerHTML = '';
+
+                if (data.courses && data.courses.length > 0) {
+                    data.courses.forEach(course => {
+                        const card = document.createElement('div');
+                        card.className = 'card';
+                        card.innerHTML = `
+                            <img src="${course.imageurl || 'https://via.placeholder.com/300'}" alt="${course.title}">
+                            <h3>${course.title}</h3>
+                            <p>${course.description}</p>
+                            <p><strong>Price: $${course.price}</strong></p>
+                            <button class="btn" onclick="editCourse('${course._id}', '${course.title}', '${course.description}', '${course.price}', '${course.imageurl}')">Edit</button>
+                            <button class="btn btn-danger" onclick="deleteCourse('${course._id}')">Delete</button>
+                        `;
+                        courseList.appendChild(card);
+                    });
+                } else {
+                    courseList.innerHTML = '<p>No courses created yet.</p>';
+                }
+            } catch (error) {
+                console.error('Error loading courses:', error);
+            }
+        }
+
+        const modal = document.getElementById('courseModal');
+        const form = document.getElementById('course-form');
+
+        function openModal() {
+            modal.style.display = 'block';
+            document.getElementById('modalTitle').textContent = 'Create Course';
+            form.reset();
+            document.getElementById('courseId').value = '';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+        }
+
+        window.onclick = function (event) {
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+
+        function editCourse(id, title, description, price, imageurl) {
+            modal.style.display = 'block';
+            document.getElementById('modalTitle').textContent = 'Edit Course';
+            document.getElementById('courseId').value = id;
+            document.getElementById('title').value = title;
+            document.getElementById('description').value = description;
+            document.getElementById('price').value = price;
+            document.getElementById('imageurl').value = imageurl;
+        }
+
+        async function deleteCourse(courseId) {
+            if (!confirm('Are you sure you want to delete this course?')) return;
+
+            const token = localStorage.getItem('token');
+            try {
+                const response = await fetch(`${BASE_URL}/admin/course`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'token': token
+                    },
+                    body: JSON.stringify({ courseId })
+                });
+                const data = await response.json();
+                if (response.ok) {
+                    loadCourses();
+                } else {
+                    alert(data.message);
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const token = localStorage.getItem('token');
+            const courseId = document.getElementById('courseId').value;
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            const price = document.getElementById('price').value;
+            const imageurl = document.getElementById('imageurl').value;
+
+            const url = `${BASE_URL}/admin/course`;
+            const method = courseId ? 'PUT' : 'POST';
+            const body = { title, description, price, imageurl };
+            if (courseId) body.courseId = courseId;
+
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'token': token
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                    closeModal();
+                    loadCourses();
+                } else {
+                    alert(data.message || 'Operation failed');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred');
+            }
+        });
+    </script>
+</body>
+
+</html>
