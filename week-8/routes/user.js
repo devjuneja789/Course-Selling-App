@@ -1,15 +1,15 @@
 const express = require("express");
 const UserRouter = express.Router();
-const { UsersModel, PurchaseModel } = require("../db");
+const { UsersModel, PurchaseModel, CourseModel } = require("../db");
 const jwt = require("jsonwebtoken");
-const USER_JWT_SECRET = require("../config");
+const { USER_JWT_SECRET } = require("../config");
 const bcrypt = require("bcrypt");
 const { z } = require("zod");
 const { userMiddleware } = require("../middlewares/user");
 
 
 UserRouter.use((req, res, next) => {
-    console.log('Time: ', Date.now());
+    console.log('Time: ', new Date().toLocaleString(), ' Method: ', req.method);
     next();
 });
 
@@ -44,6 +44,8 @@ UserRouter.post("/signup", async function (req, res) {
 
 UserRouter.post("/signin", async function (req, res) {
     const { username, password } = req.body;
+    console.log("JWT_SECRET:", process.env.USER_JWT_SECRET);
+
 
     const user = await UsersModel.findOne({
         username: username
@@ -69,14 +71,29 @@ UserRouter.post("/signin", async function (req, res) {
 
 })
 
-UserRouter.get("/courses", userMiddleware,async function (req, res) {
+UserRouter.get("/courses", userMiddleware, async function (req, res) {
     const userId = req.userId;
     const purchases = await PurchaseModel.find({
-      userId
-    }) 
+        userId
+    })
     res.json({
         purchases
     });
+})
+
+UserRouter.get("/purchases", userMiddleware, async function(req,res){
+    const userId = req.userId;
+    const purchases = await PurchaseModel.find({
+        userId,
+    })
+
+    const courseData = await CourseModel.find({
+        _id: {$in: purchases.map(x => x.courseId )}
+    })
+    res.json({
+        purchases,
+        courseData
+    })
 })
 
 module.exports = {
