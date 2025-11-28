@@ -1,10 +1,11 @@
 const express = require("express");
 const UserRouter = express.Router();
-const { UsersModel } = require("../db");
+const { UsersModel, PurchaseModel } = require("../db");
 const jwt = require("jsonwebtoken");
 const USER_JWT_SECRET = require("../config");
 const bcrypt = require("bcrypt");
 const { z } = require("zod");
+const { userMiddleware } = require("../middlewares/user");
 
 
 UserRouter.use((req, res, next) => {
@@ -68,9 +69,14 @@ UserRouter.post("/signin", async function (req, res) {
 
 })
 
-UserRouter.get("/courses", function (req, res) {
-    // TODO: Implement getting courses
-    res.json({ message: "Courses endpoint" });
+UserRouter.get("/courses", userMiddleware,async function (req, res) {
+    const userId = req.userId;
+    const purchases = await PurchaseModel.find({
+      userId
+    }) 
+    res.json({
+        purchases
+    });
 })
 
 module.exports = {
