@@ -97,7 +97,7 @@ AdminRouter.delete("/course", adminMiddleware, async function (req, res) {
 
 })
 
-AdminRouter.get("/course.bulk", adminMiddleware, async function (req, res) {
+AdminRouter.get("/course/bulk", adminMiddleware, async function (req, res) {
     const adminId = req.userId;
 
     const courses = await CourseModel.find({
